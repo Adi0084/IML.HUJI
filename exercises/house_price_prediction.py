@@ -1,46 +1,32 @@
+from IMLearn.utils import split_train_test
+from IMLearn.learners.regressors import LinearRegression
+
+from typing import NoReturn
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
-
-from IMLearn.utils import split_train_test
-from IMLearn.learners.regressors import LinearRegression
-from typing import NoReturn
-
-
 pio.templates.default = "simple_white"
-PATH_TO_DATA = "../datasets/house_prices.csv"
-COL_DROP = ["id", "date", "lat", "long", "sqft_living15", "sqft_lot15"]
-DUMMY_COL = ["yr_built", "yr_renovated", "waterfront"]
 
 
-def load_data(filename: str):
+def preprocess_data(X: pd.DataFrame, y: Optional[pd.Series] = None):
     """
-    Load house prices dataset and preprocess data.
+    preprocess data
     Parameters
     ----------
-    filename: str
-        Path to house prices dataset
+    X : DataFrame of shape (n_samples, n_features)
+        Design matrix of regression problem
+
+    y : array-like of shape (n_samples, )
+        Response vector corresponding given samples
 
     Returns
     -------
-    Design matrix and response vector (prices) - either as a single
+    Post-processed design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    data = pd.read_csv(filename)
-    data.drop(COL_DROP, axis='columns', inplace=True)
-    for col in ["price", "bedrooms", "bathrooms", "sqft_living", "sqft_lot", "sqft_above", "yr_built"]:
-        data = data[data[col] > 0]
-
-    for c in ["floors", "sqft_basement", "yr_renovated"]:
-        data = data[data[c] >= 0]
-
-    y = data["price"]
-    data.drop('price', axis='columns', inplace=True)
-    data.dropna().drop_duplicates()
-    X = data.loc[:, data.columns != "price"]
-    return X, y
+    raise NotImplementedError()
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -65,15 +51,13 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 
 if __name__ == '__main__':
     np.random.seed(0)
-    X, y = load_data(PATH_TO_DATA)
-
     # Question 1 - Load and preprocessing of housing prices dataset
-    train_X, train_y, test_X, test_y = split_train_test(X, y)
-
-    # Question 2 - Feature evaluation with respect to response
     raise NotImplementedError()
 
-    # Question 3 - Split samples into training- and testing sets.
+    # Question 2 - Preprocessing of housing prices dataset
+    raise NotImplementedError()
+
+    # Question 3 - Feature evaluation with respect to response
     raise NotImplementedError()
 
     # Question 4 - Fit model over increasing percentages of the overall training data
