@@ -8,6 +8,7 @@ from IMLearn.utils import split_train_test
 from IMLearn.learners.regressors import LinearRegression
 from typing import NoReturn
 
+
 pio.templates.default = "simple_white"
 PATH_TO_DATA = "../datasets/house_prices.csv"
 COL_DROP = ["id", "date", "lat", "long", "sqft_living15", "sqft_lot15"]
