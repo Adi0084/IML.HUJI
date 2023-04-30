@@ -35,11 +35,11 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .7
 
     """
     n_samples = X.shape[0]
-    n_train_samples = int(np.ceil(train_proportion*n_samples))
+    n_train_samples = int(np.ceil(train_proportion * n_samples))
     train_indexes = np.random.choice(X.index, size=n_train_samples, replace=False)
     test_indexes = np.setdiff1d(X.index, train_indexes)
 
-    train_X, train_y = X.loc[train_indexes],  y.loc[train_indexes]
+    train_X, train_y = X.loc[train_indexes], y.loc[train_indexes]
     test_X, test_y = X.loc[test_indexes], y.loc[test_indexes]
 
     return train_X, train_y, test_X, test_y

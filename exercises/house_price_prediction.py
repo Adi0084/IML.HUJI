@@ -55,7 +55,7 @@ def preprocess_data(X: pd.DataFrame, y: Optional[pd.Series] = None):
     return data
 
 
-def preprocess_data_helper(X: pd.DataFrame,  y: Optional[pd.Series] = None) -> pd.DataFrame:
+def preprocess_data_helper(X: pd.DataFrame, y: Optional[pd.Series] = None) -> pd.DataFrame:
     """
     Preprocess the data by removing outliers and replacing missing values.
 
@@ -132,7 +132,7 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
                 output_path + f"_{feature}.png", width=1000, height=700)
 
 
-def fit_model(fit_train_X: pd.DataFrame , fit_train_y: pd.Series, fit_test_X: pd.DataFrame, fit_test_y: pd.Series):
+def fit_model(fit_train_X: pd.DataFrame, fit_train_y: pd.Series, fit_test_X: pd.DataFrame, fit_test_y: pd.Series):
     """
     For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
      1) Sample p% of the overall training data
@@ -155,7 +155,7 @@ def fit_model(fit_train_X: pd.DataFrame , fit_train_y: pd.Series, fit_test_X: pd
         # repeat the following 10 times
         for j in range(10):
             # Sample p% of the overall training data
-            p_train_X = fit_train_X.sample(frac=(p/100))
+            p_train_X = fit_train_X.sample(frac=(p / 100))
             p_train_y = fit_train_y.loc[p_train_X.index]
 
             lr_fitted = LinearRegression(include_intercept=True)
@@ -201,6 +201,3 @@ if __name__ == '__main__':
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
     fit_model(train_X, train_y, test_X, test_y)
-
-
-

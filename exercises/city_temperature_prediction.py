@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
+
 pio.templates.default = "simple_white"
 PATH_TO_FILE = '../datasets/City_Temperature.csv'
 
@@ -22,7 +23,7 @@ def load_data(filename: str) -> pd.DataFrame:
     -------
     Design matrix and response vector (Temp)
     """
-    
+
     df = pd.read_csv(filename, parse_dates=["Date"])
     df = df[df['Temp'] > -45]
     df = df.dropna().drop_duplicates()
@@ -35,25 +36,27 @@ def load_data(filename: str) -> pd.DataFrame:
 def israel_data_analysis(df):
     israel_data = df[df.Country == "Israel"]
 
-    px.scatter(israel_data, x="DayOfYear", y="Temp", color="Year")\
+    px.scatter(israel_data, x="DayOfYear", y="Temp", color="Year") \
         .write_image("israel_tmp_vs_dayOfYear.png")
 
     monthly_std = israel_data.groupby(["Month"], as_index=False).agg(std=("Temp", "std"))
 
     px.bar(monthly_std, title="monthly temp Standard Deviation in israel",
-                                   x="Month", y="std").write_image("monthly_std_israel.png")
+           x="Month", y="std").write_image("monthly_std_israel.png")
     return israel_data
+
 
 def monthly_temp_by_country(df):
     groupby_month_country = df.groupby(["Month", "Country"], as_index=False)
     aggregated = groupby_month_country.agg(mean=("Temp", "mean"),
-                                                std=("Temp", "std"))
+                                           std=("Temp", "std"))
     line_plot = px.line(aggregated, x="Month", y="mean", error_y="std",
                         color="Country")
     line_plot.update_layout(title="Mean Monthly Temperatures",
                             xaxis_title="Month",
                             yaxis_title="Average Temperature")
     line_plot.write_image("Monthly_temperatures_vs_country_Average.png")
+
 
 def polinomial_regression_on_israel_data(df):
     train_X, train_Y, test_X, test_Y = split_train_test(df.DayOfYear, df.Temp)
@@ -73,7 +76,7 @@ def polinomial_regression_on_israel_data(df):
     errs_df = pd.DataFrame(dict(degree=polynomial_degrees, error=errs))
 
     px.bar(errs_df, x="degree", y="error", text="error",
-           title="Errors of polynomial models with different degrees")\
+           title="Errors of polynomial models with different degrees") \
         .write_image("Errors of polynomial models with different degrees.png")
     print(errs_df)
 
