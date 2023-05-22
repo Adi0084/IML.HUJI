@@ -46,7 +46,17 @@ class LDA(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        self.classes_, counts = np.unique(y, return_counts=True)
+        self.pi_ = counts / y.shape[0]
+        self.cov_ = np.zeros((X.shape[1], X.shape[1]))
+        self.mu_ = np.zeros((counts.shape[0], X.shape[1]))
+
+        for i in self.classes_:
+            samples_i = X[y == i]
+            self.mu_[i, :] = np.mean(samples_i, axis=0)
+            self.cov_ += (samples_i - self.mu_[i]).T @ (samples_i - self.mu_[i])
+        self.cov_ /= len(y) - counts.shape[0]
+        self._cov_inv = inv(self.cov_)  # TODO: make sure numerical stability
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -62,7 +72,7 @@ class LDA(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return np.argmax(self.likelihood(X), axis=1)
 
     def likelihood(self, X: np.ndarray) -> np.ndarray:
         """
@@ -82,7 +92,11 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        raise NotImplementedError()
+        a = self.mu_ @ self._cov_inv
+        b = np.log(self.pi_) - 0.5 * np.diag(self.mu_ @ self._cov_inv @ self.mu_.T)
+        x = (a @ X.T).T + b
+
+        return x
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -102,4 +116,4 @@ class LDA(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
-        raise NotImplementedError()
+        return misclassification_error(y, self.predict(X))
