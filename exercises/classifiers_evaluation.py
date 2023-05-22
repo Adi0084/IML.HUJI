@@ -127,28 +127,23 @@ def plot_comparison(name, X, y, gnb_pred, lda_pred, acc_gnb, acc_lda, gnb, lda):
     models = [gnb, lda]
     for i in range(2):
         fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode=MODE,
-                             marker=dict(color=preds[i], symbol=class_symbols[y])), row=1, col=i+1)
+                                 marker=dict(color=preds[i], symbol=class_symbols[y])), row=1, col=i + 1)
 
         fig.add_trace(go.Scatter(x=models[i].mu_[:, 0], y=models[i].mu_[:, 1], mode=MODE,
-                                 marker=dict(symbol="x", color="black", size=15)), row=1, col=i+1)
+                                 marker=dict(symbol="x", color="black", size=15)), row=1, col=i + 1)
 
     for i in range(3):
         fig.add_trace(get_ellipse(gnb.mu_[i], np.diag(gnb.vars_[i])), row=1, col=1)
         fig.add_trace(get_ellipse(lda.mu_[i], lda.cov_), row=1, col=2)
 
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
-    fig.update_layout(
-        title=f"Comparing Gaussian Classifiers on - {name} dataset",
-        title_x = 0.5,
-        width=800,
-        height=400,
-        showlegend=False
-    )
+    fig.update_layout(title=f"Comparing Gaussian Classifiers on - {name} dataset",
+                      title_x=0.5, width=800, height=400, showlegend=False)
 
     fig.show()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # run_perceptron()
+    run_perceptron()
     compare_gaussian_classifiers()
