@@ -39,7 +39,20 @@ class DecisionStump(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        min_error, best_thr = np.inf, np.inf
+        best_sign, best_feature = None, None
+        for feature in range(X.shape[1]):
+            for sign in [-1, 1]:
+                threshold, error = self._find_threshold(X[:, feature], y, sign)
+                if error < min_error:
+                    min_error = error
+                    best_sign = sign
+                    best_thr = threshold
+                    best_feature = feature
+
+        self.threshold_ = best_thr
+        self.sign_ = best_sign
+        self.j_ = best_feature
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -63,7 +76,7 @@ class DecisionStump(BaseEstimator):
         Feature values strictly below threshold are predicted as `-sign` whereas values which equal
         to or above the threshold are predicted as `sign`
         """
-        raise NotImplementedError()
+        return np.where(X[:, self.j_] < self.threshold_, -self.sign_, self.sign_)
 
     def _find_threshold(self, values: np.ndarray, labels: np.ndarray, sign: int) -> Tuple[float, float]:
         """
@@ -95,7 +108,16 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
-        raise NotImplementedError()
+        args = np.argsort(values)
+        sorted_values, sorted_labels = values[args], labels[args]
+        loss = np.sum(np.abs(sorted_labels[np.sign(sorted_labels) != sign]))
+
+        min_loss, min_thresh = min(
+            ((loss + sorted_labels[i] * sign, sorted_values[i]) for i in range(len(sorted_values))),
+            key=lambda x: x[0]
+        )
+
+        return min_thresh, min_loss
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -114,4 +136,5 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        from ...metrics import misclassification_error
+        return misclassification_error(y_true=y, y_pred=self._predict(X))

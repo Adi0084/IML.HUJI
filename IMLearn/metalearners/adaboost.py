@@ -60,7 +60,8 @@ class AdaBoost(BaseEstimator):
         self.models_, self.weights_ = [], []
 
         for ind in range(self.iterations_):
-            curr_estimator = self.wl_().fit(X, y * sample_weights)
+            curr_estimator = self.wl_()
+            curr_estimator.fit(X, y * sample_weights)
             y_pred = curr_estimator.predict(X)
 
             eps = np.sum(sample_weights * (y_pred != y))
