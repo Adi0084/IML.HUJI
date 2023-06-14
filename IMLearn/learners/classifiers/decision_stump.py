@@ -101,7 +101,7 @@ class DecisionStump(BaseEstimator):
             Threshold by which to perform split
 
         thr_err: float between 0 and 1
-            Misclassificaiton error of returned threshold
+            misclassification error of returned threshold
 
         Notes
         -----
@@ -110,14 +110,20 @@ class DecisionStump(BaseEstimator):
         """
         args = np.argsort(values)
         sorted_values, sorted_labels = values[args], labels[args]
-        loss = np.sum(np.abs(sorted_labels[np.sign(sorted_labels) != sign]))
+        loss = np.sum(np.abs(sorted_labels[np.sign(sorted_labels) == sign]))
+        loss = np.append(loss, np.zeros_like(sorted_labels))
+        thresholds = np.append([-np.inf], sorted_values[1:])
 
-        min_loss, min_thresh = min(
-            ((loss + sorted_labels[i] * sign, sorted_values[i]) for i in range(len(sorted_values))),
-            key=lambda x: x[0]
-        )
+        min_loss = np.inf
+        min_thr = None
 
-        return min_thresh, min_loss
+        for i in range(1, len(sorted_values)):
+            loss[i] = loss[i - 1] - sorted_labels[i - 1] * sign
+            if loss[i] < min_loss:
+                min_loss = loss[i]
+                min_thr = thresholds[i]
+
+        return min_thr, min_loss
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """

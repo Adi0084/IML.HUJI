@@ -45,40 +45,73 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 
     # Question 1: Train- and test errors of AdaBoost in noiseless case
     adaboost = AdaBoost(DecisionStump, iterations=n_learners)
-    adaboost._fit(train_X, train_y)
+    adaboost.fit(train_X, train_y)
 
-    preds = []
     test_loss, train_loss = [], []
     for num_learners in range(1, n_learners):
-        preds.append(adaboost.partial_predict(test_X, num_learners))
         test_loss.append(adaboost.partial_loss(test_X, test_y, num_learners))
         train_loss.append(adaboost.partial_loss(train_X, train_y, num_learners))
 
-    # test_scatter = go.Scatter(x=np.arange(len(test_loss)), y=test_loss, mode='markers+lines', name='Test Set')
-    # train_scatter = go.Scatter(x=np.arange(len(test_loss)), y=train_loss, mode='markers+lines', name='Train Set')
-    # fig = go.Figure([test_scatter, train_scatter],
-    #                 layout=go.Layout(title=r"$\text{Loss as function of weak learners used in AdaBoost model} $",
-    #                                  xaxis_title="$\\text{Number of weak learners}$",
-    #                                  yaxis_title="$\\text{loss over dataset}$",
-    #                                  height=400
-    #                                  ))
-    # fig.show()
-    plt.plot(range(1, n_learners), train_loss, label='train')
-    plt.plot(range(1, n_learners), test_loss, label='test')
-    plt.title('Error - Train and test')
+    min_loss = np.inf
+    size_l = np.inf
+
+    for ind, loss in enumerate(test_loss):
+        if loss < min_loss:
+            min_loss = loss
+            size_l = ind
+
+    plt.plot(range(1, n_learners), train_loss, label='train error')
+    plt.plot(range(1, n_learners), test_loss, label='test error')
+    plt.title('AdaBoost Error - Train and Test')
+    plt.xlabel('Number of fitted models')
+    plt.ylabel('Loss')
     plt.legend()
     plt.show()
 
     # Question 2: Plotting decision surfaces
     T = [5, 50, 100, 250]
     lims = np.array([np.r_[train_X, test_X].min(axis=0), np.r_[train_X, test_X].max(axis=0)]).T + np.array([-.1, .1])
-    # raise NotImplementedError()
+    model_info = [(t, accuracy(test_y, adaboost.partial_predict(test_X, t))) for t in T]
+    model_names = [f'{t} Learners with Accuracy: {acc}' for t, acc in model_info]
+    fig = make_subplots(rows=2, cols=2, subplot_titles=[rf"$\textbf{{{m}}}$" for m in model_names],
+                        horizontal_spacing=.03, vertical_spacing=.1)
+
+    scatter = go.Scatter(x=test_X[:, 0], y=test_X[:, 1], mode="markers", showlegend=False,
+                         marker=dict(color=test_y,
+                                     colorscale=[custom[0], custom[-1]],
+                                     line=dict(color="black", width=1)))
+    for i, t in enumerate(T):
+        pred = lambda X: adaboost.partial_predict(X, t)
+        fig.add_traces([decision_surface(pred, lims[0], lims[1], showscale=False), scatter],
+                       rows=(i // 2) + 1, cols=(i % 2) + 1)
+
+    fig.update_layout(title=rf"$\textbf{{Decision boundaries}}$", margin=dict(t=100), title_x=0.5)
+    fig.show()
 
     # Question 3: Decision surface of best performing ensemble
-    # raise NotImplementedError()
+    acc = accuracy(test_y, adaboost.partial_predict(test_X, size_l))
+    fig = make_subplots(rows=1, cols=1,
+                        subplot_titles=[rf"$\textbf{{{f'Ensemble size: {size_l}, Accuracy: {acc}'}}}$"],
+                        horizontal_spacing=0.01, vertical_spacing=.03)
+    fig.add_traces([decision_surface(lambda X: adaboost.partial_predict(X, size_l), lims[0], lims[1], showscale=False),
+                    scatter])
+
+    fig.update_layout(title=rf"$\textbf{{Best performing ensemble}}$", margin=dict(t=100), title_x=0.5)
+    fig.show()
 
     # Question 4: Decision surface with weighted samples
-    # raise NotImplementedError()
+    D = (adaboost.D_ / np.max(adaboost.D_))*5
+    scatter.marker['size'] = D
+    scatter.marker['color'] = train_y
+    scatter.x, scatter.y = train_X[:, 0], train_X[:, 1]
+    fig = make_subplots(rows=1, cols=1, subplot_titles=[
+        rf"$\textbf{{{f'{n_learners} Learners, with point size proportional to its weight'}}}$"],
+                        horizontal_spacing=0.01, vertical_spacing=.03)
+    fig.add_traces([decision_surface(lambda X: adaboost.partial_predict(X, n_learners), lims[0], lims[1],
+                                     showscale=False), scatter])
+
+    fig.update_layout(title=rf"$\textbf{{Last iteration}}$", margin=dict(t=100), title_x=0.5)
+    fig.show()
 
 
 if __name__ == '__main__':

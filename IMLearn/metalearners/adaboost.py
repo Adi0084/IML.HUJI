@@ -57,24 +57,22 @@ class AdaBoost(BaseEstimator):
         """
         n = X.shape[0]
         sample_weights = np.full(n, 1 / n)
-        self.models_, self.weights_ = [], []
+        models, weights = [], []
 
         for ind in range(self.iterations_):
             curr_estimator = self.wl_()
             curr_estimator.fit(X, y * sample_weights)
             y_pred = curr_estimator.predict(X)
-
-            eps = np.sum(sample_weights * (y_pred != y))
-
-            # Compute the estimator weight
-            estimator_weight = 0.5 * np.log((1 / eps) - 1)
-
-            # Update sample weights
+            weighted_error = np.sum(sample_weights * (y_pred != y))
+            estimator_weight = 0.5 * np.log((1 / weighted_error) - 1)
             sample_weights *= np.exp(-estimator_weight * y * y_pred)
             sample_weights /= np.sum(sample_weights)
 
-            self.models_.append(curr_estimator)
-            self.weights_.append(estimator_weight)
+            models.append(curr_estimator)
+            weights.append(estimator_weight)
+
+        self.models_ = models
+        self.weights_ = weights
         self.D_ = sample_weights
 
     def _predict(self, X):
@@ -108,7 +106,7 @@ class AdaBoost(BaseEstimator):
         Returns
         -------
         loss : float
-            Performance under missclassification loss function
+            Performance under misclassification loss function
         """
         return misclassification_error(y, self._predict(X))
 
@@ -155,4 +153,4 @@ class AdaBoost(BaseEstimator):
             Performance under missclassification loss function
         """
 
-        return misclassification_error(y, self.partial_predict(X, T))
+        return misclassification_error(y_true=y, y_pred=self.partial_predict(X, T))
