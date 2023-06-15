@@ -37,19 +37,31 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    new_X = np.concatenate((X, X))
-    new_y = np.concatenate((y, y))
-    test_set_size = int(np.ceil(X.shape[0] / cv))
-    train_set_size = int(X.shape[0] - test_set_size)
-    train_score = 0
-    test_score = 0
-    for i in range(cv):
-        train_set = new_X[i:i + train_set_size, :]
-        test_set = new_X[i + train_set_size:i + train_set_size + test_set_size, :]
-        estimator.fit(train_set, new_y[i:i + train_set_size])
-        pred = estimator.predict(train_set)
-        train_score += scoring(new_y[i:i + train_set_size], pred)
-        test_score += scoring(new_y[i + train_set_size:i + train_set_size + test_set_size], estimator.predict(test_set))
-    test_score /= cv
-    train_score /= cv
-    return train_score, test_score
+    indices = np.arange(X.shape[0])
+    np.array_split(indices, cv)
+
+    train_scores, validation_scores = [], []
+
+    fold_size = X.shape[0] // cv
+    for fold in range(cv):
+        start_idx = fold * fold_size
+        end_idx = start_idx + fold_size
+
+        fold_indices = indices[start_idx:end_idx]
+        train_indices = np.delete(indices, fold_indices)
+
+        fit = estimator.fit(X[train_indices], y[train_indices])
+
+        train_score = scoring(y[train_indices], fit.predict(X[train_indices]))
+        validation_score = scoring(y[fold_indices], fit.predict(X[fold_indices]))
+
+        train_scores.append(train_score)
+        validation_scores.append(validation_score)
+
+    train_score_avg = float(np.mean(train_scores))
+    validation_score_avg = float(np.mean(validation_scores))
+
+    return train_score_avg, validation_score_avg
+
+
+

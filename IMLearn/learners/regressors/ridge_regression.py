@@ -59,16 +59,16 @@ class RidgeRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        n_samples, n_features = X.shape
         if self.include_intercept_:
-            new_X = np.concatenate([np.ones((n_samples, 1)), X], axis=1)
+            X_col = np.ones((X.shape[0], 1))
+            new_X = np.concatenate([X_col, X], axis=1)
         else:
             new_X = np.copy(X)
+
         self.coefs_ = np.linalg.inv(
-            new_X.T @ new_X + self.lam_ * np.identity(n_features + 1)) @ new_X.T @ y
+            new_X.T @ new_X + self.lam_ * np.identity(X.shape[1] + 1)) @ new_X.T @ y
 
-
-def _predict(self, X: np.ndarray) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predict responses for given samples using fitted estimator
 
@@ -83,8 +83,8 @@ def _predict(self, X: np.ndarray) -> np.ndarray:
             Predicted responses of given samples
         """
         if self.include_intercept_:
-            X_rows = X.shape[0]
-            X = np.concatenate((np.ones((X_rows, 1)), X), axis=1)
+            X_col = np.ones((X.shape[0], 1))
+            X = np.concatenate((X_col, X), axis=1)
         return np.matmul(X, self.coefs_)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
