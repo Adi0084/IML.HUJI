@@ -119,4 +119,35 @@ class GradientDescent:
                 Euclidean norm of w^(t)-w^(t-1)
 
         """
-        raise NotImplementedError()
+        weight_sum = np.copy(f.weights)
+        best_weight = f.weights
+        lowest_loss = np.inf
+
+        iteration_count = 0
+        is_converged = False
+
+        while iteration_count < self.max_iter_ and not is_converged:
+            learning_step = self.learning_rate_.lr_step(t=iteration_count)
+            gradient = f.compute_jacobian(X=X, y=y)
+            previous_weight = np.copy(f.weights)
+            f.weights = f.weights - (learning_step * gradient)
+            if np.linalg.norm(f.weights - previous_weight) < self.tol_:
+                is_converged = True
+            current_loss = f.compute_output(X=X, y=y)
+            weight_sum = weight_sum + f.weights
+
+            if current_loss < lowest_loss:
+                lowest_loss = current_loss
+                best_weight = f.weights
+            self.callback_(model=self, loss=current_loss, weights=f.weights)
+            iteration_count += 1
+
+        # Select the desired output type
+        if self.out_type_ == "last":
+            selected_solution = f.weights
+        elif self.out_type_ == "best":
+            selected_solution = best_weight
+        else:
+            selected_solution = weight_sum / iteration_count
+
+        return selected_solution
